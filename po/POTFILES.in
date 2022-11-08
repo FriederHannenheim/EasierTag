@@ -1,0 +1,6 @@
+data/net.fhannenheim.EasierTag.desktop.in.in
+data/net.fhannenheim.EasierTag.gschema.xml.in
+data/net.fhannenheim.EasierTag.metainfo.xml.in.in
+data/resources/ui/shortcuts.ui
+data/resources/ui/window.ui
+src/application.rs
