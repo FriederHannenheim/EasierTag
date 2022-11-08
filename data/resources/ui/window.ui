@@ -1,39 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 -->
 <interface>
-  <menu id="primary_menu">
-    <section>
-      <item>
-        <attribute name="label" translatable="yes">_Preferences</attribute>
-        <attribute name="action">app.preferences</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
-        <attribute name="action">win.show-help-overlay</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">_About EasierTag</attribute>
-        <attribute name="action">app.about</attribute>
-      </item>
-    </section>
-  </menu>
   <template class="ExampleApplicationWindow" parent="GtkApplicationWindow">
-    <child type="titlebar">
-      <object class="GtkHeaderBar" id="headerbar">
-        <child type="end">
-          <object class="GtkMenuButton" id="appmenu_button">
-            <property name="icon-name">open-menu-symbolic</property>
-            <property name="menu-model">primary_menu</property>
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkTreeView" id="treeview">
+        <!--<property name="model">fileview</property>-->
+        <child>
+          <object class="GtkTreeViewColumn" id="test-column">
+            <property name="title">Test</property>
+            <child>
+              <object class="GtkCellRendererText" id="test-renderer"/>
+              <attributes>
+                <attribute name="text">1</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+        <child internal-child="selection">
+          <object class="GtkTreeSelection" id="selection">
+            <!--<signal name="changed" handler="on_treeview_selection_changed"/>-->
           </object>
         </child>
       </object>
     </child>
-    <child>
-      <object class="GtkLabel" id="label">
-        <property name="label" translatable="yes">Hello world!</property>
-        <style>
-          <class name="title-header"/>
-        </style>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="headerbar">
+        <child type="end">
+          <object class="GtkMenuButton" id="appmenu_button">
+          </object>
+        </child>
       </object>
     </child>
   </template>
 </interface>
+

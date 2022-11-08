@@ -11,6 +11,8 @@ mod imp {
     #[derive(Debug, gtk::CompositeTemplate)]
     #[template(resource = "/net/fhannenheim/EasierTag/ui/window.ui")]
     pub struct ExampleApplicationWindow {
+        //#[template_child]
+        //pub fileview: TemplateChild<gtk::TreeView>,
         #[template_child]
         pub headerbar: TemplateChild<gtk::HeaderBar>,
         pub settings: gio::Settings,
@@ -19,6 +21,7 @@ mod imp {
     impl Default for ExampleApplicationWindow {
         fn default() -> Self {
             Self {
+          //      fileview: TemplateChild::default(),
                 headerbar: TemplateChild::default(),
                 settings: gio::Settings::new(APP_ID),
             }
