@@ -2,36 +2,37 @@ use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, glib};
 
-use crate::application::ExampleApplication;
+use crate::application::EasierTagApplication;
 use crate::config::{APP_ID, PROFILE};
+use crate::folderbrowser::FolderBrowser;
 
 mod imp {
     use super::*;
 
     #[derive(Debug, gtk::CompositeTemplate)]
     #[template(resource = "/net/fhannenheim/EasierTag/ui/window.ui")]
-    pub struct ExampleApplicationWindow {
-        //#[template_child]
-        //pub fileview: TemplateChild<gtk::TreeView>,
+    pub struct EasierTagApplicationWindow {
         #[template_child]
         pub headerbar: TemplateChild<gtk::HeaderBar>,
+        #[template_child]
+        pub folderbrowser: TemplateChild<FolderBrowser>,
         pub settings: gio::Settings,
     }
 
-    impl Default for ExampleApplicationWindow {
+    impl Default for EasierTagApplicationWindow {
         fn default() -> Self {
             Self {
-          //      fileview: TemplateChild::default(),
                 headerbar: TemplateChild::default(),
+                folderbrowser: TemplateChild::default(),
                 settings: gio::Settings::new(APP_ID),
             }
         }
     }
 
     #[glib::object_subclass]
-    impl ObjectSubclass for ExampleApplicationWindow {
+    impl ObjectSubclass for EasierTagApplicationWindow {
         const NAME: &'static str = "ExampleApplicationWindow";
-        type Type = super::ExampleApplicationWindow;
+        type Type = super::EasierTagApplicationWindow;
         type ParentType = gtk::ApplicationWindow;
 
         fn class_init(klass: &mut Self::Class) {
@@ -44,7 +45,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for ExampleApplicationWindow {
+    impl ObjectImpl for EasierTagApplicationWindow {
         fn constructed(&self) {
             self.parent_constructed();
             let obj = self.instance();
@@ -59,8 +60,8 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for ExampleApplicationWindow {}
-    impl WindowImpl for ExampleApplicationWindow {
+    impl WidgetImpl for EasierTagApplicationWindow {}
+    impl WindowImpl for EasierTagApplicationWindow {
         // Save window state on delete event
         fn close_request(&self) -> gtk::Inhibit {
             if let Err(err) = self.instance().save_window_size() {
@@ -72,17 +73,17 @@ mod imp {
         }
     }
 
-    impl ApplicationWindowImpl for ExampleApplicationWindow {}
+    impl ApplicationWindowImpl for EasierTagApplicationWindow {}
 }
 
 glib::wrapper! {
-    pub struct ExampleApplicationWindow(ObjectSubclass<imp::ExampleApplicationWindow>)
+    pub struct EasierTagApplicationWindow(ObjectSubclass<imp::EasierTagApplicationWindow>)
         @extends gtk::Widget, gtk::Window, gtk::ApplicationWindow,
         @implements gio::ActionMap, gio::ActionGroup, gtk::Root;
 }
 
-impl ExampleApplicationWindow {
-    pub fn new(app: &ExampleApplication) -> Self {
+impl EasierTagApplicationWindow {
+    pub fn new(app: &EasierTagApplication) -> Self {
         glib::Object::new(&[("application", app)])
     }
 
@@ -112,5 +113,9 @@ impl ExampleApplicationWindow {
         if is_maximized {
             self.maximize();
         }
+    }
+
+    pub fn init(&self) {
+        self.imp().folderbrowser.init();
     }
 }

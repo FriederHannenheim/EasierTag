@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <template class="FolderItem" parent="GtkWidget">
+    <property name="layout-manager">
+      <object class="GtkBoxLayout">
+        <property name="orientation">horizontal</property>
+      </object>
+    </property>
+	  <child>
+	    <object class="GtkTreeExpander" id="expander">
+		<property name="indent-for-icon">true</property>
+		<property name="child">
+		    <object class="GtkBox">
+			<property name="orientation">horizontal</property>
+		      <property name="hexpand">true</property>
+			<property name="halign">fill</property>
+		      <property name="spacing">6</property>
+			<property name="height-request">16</property>
+			<property name="valign">center</property>
+			<child>
+			    <object class="GtkImage" id="icon">
+				<property name="halign">center</property>
+				<property name="valign">center</property>
+			  </object>
+			</child>
+		<child>
+				    <object class="GtkLabel" id="label">
+					<property name="ellipsize">middle</property>
+					<property name="lines">1</property>
+					<property name="max-width-chars">-1</property>
+					<property name="wrap">False</property>
+					<property name="wrap-mode">word-char</property>
+					<property name="halign">start</property>
+					<attributes>
+					    <attribute name="insert-hyphens" value="false"></attribute>
+					</attributes>
+				    </object>
+			</child>
+		      		    </object>
+		</property>
+	      	    </object>
+	</child>
+    </template>
+</interface>

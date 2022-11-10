@@ -5,8 +5,10 @@ use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gdk, gio, glib};
 
+use adw::subclass::prelude::*;
+
 use crate::config::{APP_ID, PKGDATADIR, PROFILE, VERSION};
-use crate::window::ExampleApplicationWindow;
+use crate::window::EasierTagApplicationWindow;
 
 mod imp {
     use super::*;
@@ -14,22 +16,22 @@ mod imp {
     use once_cell::sync::OnceCell;
 
     #[derive(Debug, Default)]
-    pub struct ExampleApplication {
-        pub window: OnceCell<WeakRef<ExampleApplicationWindow>>,
+    pub struct EasierTagApplication {
+        pub window: OnceCell<WeakRef<EasierTagApplicationWindow>>,
     }
 
     #[glib::object_subclass]
-    impl ObjectSubclass for ExampleApplication {
-        const NAME: &'static str = "ExampleApplication";
-        type Type = super::ExampleApplication;
-        type ParentType = gtk::Application;
+    impl ObjectSubclass for EasierTagApplication {
+        const NAME: &'static str = "EasierTagApplication";
+        type Type = super::EasierTagApplication;
+        type ParentType = adw::Application;
     }
 
-    impl ObjectImpl for ExampleApplication {}
+    impl ObjectImpl for EasierTagApplication {}
 
-    impl ApplicationImpl for ExampleApplication {
+    impl ApplicationImpl for EasierTagApplication {
         fn activate(&self) {
-            debug!("GtkApplication<ExampleApplication>::activate");
+            debug!("AdwApplication<EasierTagApplication>::activate");
             self.parent_activate();
             let app = self.instance();
 
@@ -39,16 +41,18 @@ mod imp {
                 return;
             }
 
-            let window = ExampleApplicationWindow::new(&*app);
+            let window = EasierTagApplicationWindow::new(&*app);
             self.window
                 .set(window.downgrade())
                 .expect("Window already set.");
 
             app.main_window().present();
+
+            window.init();
         }
 
         fn startup(&self) {
-            debug!("GtkApplication<ExampleApplication>::startup");
+            debug!("GtkApplication<EasierTagApplication>::startup");
             self.parent_startup();
             let app = self.instance();
 
@@ -61,17 +65,19 @@ mod imp {
         }
     }
 
-    impl GtkApplicationImpl for ExampleApplication {}
+    impl GtkApplicationImpl for EasierTagApplication {}
+
+    impl AdwApplicationImpl for EasierTagApplication {}
 }
 
 glib::wrapper! {
-    pub struct ExampleApplication(ObjectSubclass<imp::ExampleApplication>)
+    pub struct EasierTagApplication(ObjectSubclass<imp::EasierTagApplication>)
         @extends gio::Application, gtk::Application,
         @implements gio::ActionMap, gio::ActionGroup;
 }
 
-impl ExampleApplication {
-    fn main_window(&self) -> ExampleApplicationWindow {
+impl EasierTagApplication {
+    fn main_window(&self) -> EasierTagApplicationWindow {
         self.imp().window.get().unwrap().upgrade().unwrap()
     }
 
@@ -140,7 +146,7 @@ impl ExampleApplication {
     }
 }
 
-impl Default for ExampleApplication {
+impl Default for EasierTagApplication {
     fn default() -> Self {
         glib::Object::new::<Self>(&[
             ("application-id", &APP_ID),
