@@ -1,9 +1,7 @@
 use gtk::{
-    gdk, gio, glib, glib::clone, glib::closure, prelude::*, subclass::prelude::*, Button,
-    CompositeTemplate, ConstantExpression, CustomSorter, DirectoryList, Entry, FileFilter,
-    FilterChange, FilterListModel, ListItem, ListView, MultiSorter, PropertyExpression,
-    SignalListItemFactory, SingleSelection, SortListModel, SorterChange, Widget, Image,
-    Label, TreeExpander,
+    glib, prelude::*, subclass::prelude::*,
+    CompositeTemplate, Image, Label,
+    TreeExpander, Widget,
 };
 
 mod imp {
@@ -69,7 +67,7 @@ impl FolderItem {
 }
 
 impl Default for FolderItem {
-         fn default() -> Self {
-             Self::new()
-         }
-     }
+    fn default() -> Self {
+        Self::new()
+    }
+}

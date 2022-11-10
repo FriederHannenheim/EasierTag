@@ -1,9 +1,9 @@
 use gtk::{
-    gdk, gio, glib, glib::clone, glib::closure, prelude::*, subclass::prelude::*, Button,
-    CompositeTemplate, ConstantExpression, CustomSorter, DirectoryList, Entry, FileFilter,
-    FilterChange, FilterListModel, ListItem, ListView, MultiSorter, PropertyExpression,
-    SignalListItemFactory, SingleSelection, SortListModel, SorterChange, Widget, TreeListModel,
-    TreeListRow,
+    gio, glib, glib::clone, glib::closure, prelude::*, subclass::prelude::*,
+    CompositeTemplate, ConstantExpression, DirectoryList, FileFilter,
+    FilterChange, FilterListModel, ListItem, ListView, PropertyExpression,
+    SignalListItemFactory, SingleSelection, TreeListModel,
+    TreeListRow, Widget,
 };
 
 use crate::folderbrowser::folderitem::FolderItem;
@@ -94,7 +94,7 @@ impl FolderBrowser {
             let fileinfo_expr =
                 PropertyExpression::new(ListItem::static_type(), Some(&list_item_expr), "item");
 
-            let file_expr = fileinfo_expr.chain_closure::<Option<gio::File>>(closure!(
+            let _file_expr = fileinfo_expr.chain_closure::<Option<gio::File>>(closure!(
                 |_: Option<glib::Object>, fileinfo_obj: Option<glib::Object>| {
                     fileinfo_obj
                         .map(|fileinfo_obj| {
@@ -174,7 +174,6 @@ impl FolderBrowser {
             // file_expr.bind(&folderitem, "current-file", Widget::NONE);
             basename_expr.bind(&folderitem.file_label(), "label", Widget::NONE);
             icon_name_expr.bind(&folderitem.file_image(), "gicon", Widget::NONE);
-            println!("Alright so the list init is working.");
         });
 
         let filefilter = FileFilter::new();
@@ -183,14 +182,21 @@ impl FolderBrowser {
             FilterListModel::new(Some(&self.imp().primary_dirlist), Some(&filefilter));
 
         let treelist_model = TreeListModel::new(&filefilter_model, false, false, |obj| {
-            let fileinfo = obj.clone().downcast::<gio::FileInfo>()
-                            .unwrap().attribute_object("standard::file").unwrap();
+            let fileinfo = obj
+                .clone()
+                .downcast::<gio::FileInfo>()
+                .unwrap()
+                .attribute_object("standard::file")
+                .unwrap();
             if let Ok(file) = fileinfo.downcast::<gio::File>() {
                 let secondary_filefilter = FileFilter::new();
                 secondary_filefilter.add_mime_type("inode/directory");
                 let secondary_dirlist = DirectoryList::new(Some("standard::*"), Some(&file));
                 secondary_dirlist.set_monitored(true);
-                return Some(FilterListModel::new(Some(&secondary_dirlist), Some(&secondary_filefilter)).into());
+                return Some(
+                    FilterListModel::new(Some(&secondary_dirlist), Some(&secondary_filefilter))
+                        .into(),
+                );
             }
             None
         });
@@ -205,24 +211,30 @@ impl FolderBrowser {
             .primary_listview
             .get()
             .set_model(Some(&primary_selection_model));
-        self.primary_listview().connect_activate(|primary_listview, position| {
-            let model = primary_listview.model().expect("Listview has no SelectionModel")
-                .downcast::<SingleSelection>()
-                .expect("SelectionModel is not a SingleSelectionModel")
-                .model()
-                .expect("SelectionModel has no ListModel");
-            let treelist_model = model.downcast::<TreeListModel>().expect("Model isn't a TreeListModel'");
-            if let Some(child_row) = treelist_model.child_row(position) {
-                child_row.set_expanded(true);
-            }
-        });
+        self.primary_listview()
+            .connect_activate(|primary_listview, position| {
+                let model = primary_listview
+                    .model()
+                    .expect("Listview has no SelectionModel")
+                    .downcast::<SingleSelection>()
+                    .expect("SelectionModel is not a SingleSelectionModel")
+                    .model()
+                    .expect("SelectionModel has no ListModel");
+                let treelist_model = model
+                    .downcast::<TreeListModel>()
+                    .expect("Model isn't a TreeListModel'");
+                if let Some(child_row) = treelist_model.child_row(position) {
+                    child_row.set_expanded(true);
+                }
+            });
 
-        self.primary_dirlist().connect_items_changed(clone!(@weak filefilter => move |_primary_dirlist, _position, _removed, _added| {
-            filefilter.changed(FilterChange::Different);
-            println!("cat kitty cat cat kitty cat cat");
-        }));
-        self.primary_dirlist().set_file(Some(&gio::File::for_path("/home/fried/")));
+        self.primary_dirlist().connect_items_changed(
+            clone!(@weak filefilter => move |_primary_dirlist, _position, _removed, _added| {
+                filefilter.changed(FilterChange::Different);
+            }),
+        );
+        self.primary_dirlist()
+            .set_file(Some(&gio::File::for_path("/home/fried/")));
         println!("{:?}", self.imp().primary_dirlist.is_loading());
     }
 }
-
