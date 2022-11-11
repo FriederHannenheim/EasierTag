@@ -1,9 +1,8 @@
 use gtk::{
-    gio, glib, glib::clone, glib::closure, prelude::*, subclass::prelude::*,
-    CompositeTemplate, ConstantExpression, DirectoryList, FileFilter,
-    FilterChange, FilterListModel, ListItem, ListView, PropertyExpression,
-    SignalListItemFactory, SingleSelection, TreeListModel,
-    TreeListRow, Widget,
+    gio, glib, glib::clone, glib::closure, prelude::*, subclass::prelude::*, glib::Object, CompositeTemplate,
+    ConstantExpression, DirectoryList, FileFilter, FilterChange, FilterListModel, ListItem,
+    ListView, PropertyExpression, SignalListItemFactory, SingleSelection, TreeListModel,
+    TreeListRow, Widget, SortListModel, CustomSorter,
 };
 
 use crate::folderbrowser::folderitem::FolderItem;
@@ -52,6 +51,11 @@ mod imp {
     impl ObjectImpl for FolderBrowser {
         fn constructed(&self) {
             self.parent_constructed();
+        }
+        fn dispose(&self) {
+            while let Some(child) = self.obj().first_child() {
+                child.unparent();
+            }
         }
     }
 
@@ -171,9 +175,19 @@ impl FolderBrowser {
                     String::from("")
                 }));
 
+            let treeexpander_expr = fileinfo_expr.chain_closure::<Option<TreeListRow>>(closure!(|_: Option<Object>, fileinfo_obj: Option<Object>| {
+                if let Some(fileinfo_obj) = fileinfo_obj {
+                    if let Ok(tree_list_row) = fileinfo_obj.downcast::<TreeListRow>() {
+                        return Some(tree_list_row);
+                    }
+                }
+                None
+            }));
+
             // file_expr.bind(&folderitem, "current-file", Widget::NONE);
             basename_expr.bind(&folderitem.file_label(), "label", Widget::NONE);
             icon_name_expr.bind(&folderitem.file_image(), "gicon", Widget::NONE);
+            treeexpander_expr.bind(&folderitem.tree_expander(), "list_row", Widget::NONE);
         });
 
         let filefilter = FileFilter::new();
@@ -181,25 +195,45 @@ impl FolderBrowser {
         let filefilter_model =
             FilterListModel::new(Some(&self.imp().primary_dirlist), Some(&filefilter));
 
-        let treelist_model = TreeListModel::new(&filefilter_model, false, false, |obj| {
-            let fileinfo = obj
+        let alphanumeric_sorter = CustomSorter::new(move |obj1, obj2| {
+            let first_fileinfo = obj1
                 .clone()
                 .downcast::<gio::FileInfo>()
-                .unwrap()
-                .attribute_object("standard::file")
-                .unwrap();
-            if let Ok(file) = fileinfo.downcast::<gio::File>() {
-                let secondary_filefilter = FileFilter::new();
-                secondary_filefilter.add_mime_type("inode/directory");
-                let secondary_dirlist = DirectoryList::new(Some("standard::*"), Some(&file));
-                secondary_dirlist.set_monitored(true);
-                return Some(
-                    FilterListModel::new(Some(&secondary_dirlist), Some(&secondary_filefilter))
-                        .into(),
-                );
-            }
-            None
+                .expect("failed to downcast obj1");
+            let first_file = first_fileinfo.attribute_object("standard::file").unwrap();
+            let first_file = first_file.downcast::<gio::File>().unwrap();
+            let first_display_name = first_file.basename().unwrap();
+            let first_display_name = first_display_name.to_str().unwrap();
+
+            let second_fileinfo = obj2
+                .clone()
+                .downcast::<gio::FileInfo>()
+                .expect("failed to downcast obj2");
+            let second_file = second_fileinfo.attribute_object("standard::file").unwrap();
+            let second_file = second_file.downcast::<gio::File>().unwrap();
+            let second_display_name = second_file.basename().unwrap();
+            let second_display_name = second_display_name.to_str().unwrap();
+
+            first_display_name.cmp(second_display_name).into()
         });
+        let sort_list_model = SortListModel::new(Some(&filefilter_model), Some(&alphanumeric_sorter));
+
+        let treelist_model = TreeListModel::new(&sort_list_model, false, false,
+            clone!(@weak filefilter, @weak alphanumeric_sorter => @default-return None, move |obj| {
+                let fileinfo = obj
+                    .clone()
+                    .downcast::<gio::FileInfo>()
+                    .unwrap()
+                    .attribute_object("standard::file")
+                    .unwrap();
+                if let Ok(file) = fileinfo.downcast::<gio::File>() {
+                    let secondary_dirlist = DirectoryList::new(Some("standard::*"), Some(&file));
+                    secondary_dirlist.set_monitored(true);
+                    let secondary_filefiltermodel = FilterListModel::new(Some(&secondary_dirlist), Some(&filefilter));
+                    return Some(SortListModel::new(Some(&secondary_filefiltermodel), Some(&alphanumeric_sorter)).into());
+                };
+                None
+        }));
 
         let primary_selection_model = SingleSelection::new(Some(&treelist_model));
 

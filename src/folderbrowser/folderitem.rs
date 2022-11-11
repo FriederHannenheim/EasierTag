@@ -1,7 +1,5 @@
 use gtk::{
-    glib, prelude::*, subclass::prelude::*,
-    CompositeTemplate, Image, Label,
-    TreeExpander, Widget,
+    glib, prelude::*, subclass::prelude::*, CompositeTemplate, Image, Label, TreeExpander, Widget,
 };
 
 mod imp {
@@ -38,6 +36,11 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
         }
+        fn dispose(&self) {
+            while let Some(child) = self.obj().first_child() {
+                child.unparent();
+            }
+        }
     }
 
     impl WidgetImpl for FolderItem {}
@@ -71,3 +74,4 @@ impl Default for FolderItem {
         Self::new()
     }
 }
+
