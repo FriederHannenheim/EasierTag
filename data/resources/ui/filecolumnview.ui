@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="FileColumnView" parent="GtkWidget">
+    <property name="hexpand">false</property>
+    <property name="vexpand">true</property>
+    <property name="valign">fill</property>
+    <property name="halign">fill</property>
+    <property name="layout-manager">
+      <object class="GtkGridLayout" />
+    </property>
+    <child>
+      <object class="GtkScrolledWindow" id="files_scroller">
+        <layout>
+          <property name="column">0</property>
+          <property name="row">0</property>
+        </layout>
+        <property name="propagate-natural-width">false</property>
+        <property name="propagate-natural-height">false</property>
+        <property name="hexpand">true</property>
+        <property name="vexpand">true</property>
+        <property name="valign">fill</property>
+        <property name="halign">fill</property>
+        <property name="hscrollbar-policy">never</property>
+        <child>
+          <object class="GtkColumnView" id="file_column_view">
+            <property name="show-column-separators">true</property>
+            <property name="enable-rubberband">true</property>
+            <child>
+              <object class="GtkColumnViewColumn" id="filename_column">
+                <property name="title">Filename</property>
+                <property name="resizable">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="title_column">
+                <property name="title">Title</property>
+                <property name="resizable">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="artist_column">
+                <property name="title">Artist</property>
+                <property name="resizable">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="album_column">
+                <property name="title">Album</property>
+                <property name="resizable">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="year_column">
+                <property name="title">Year</property>
+                <property name="resizable">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="disc_column">
+                <property name="title">Disc</property>
+                <property name="resizable">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="track_column">
+                <property name="title">Track</property>
+                <property name="resizable">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="genre_column">
+                <property name="title">Genre</property>
+                <property name="resizable">true</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

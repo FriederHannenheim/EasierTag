@@ -3,6 +3,7 @@ mod application;
 mod config;
 mod folderbrowser;
 mod window;
+mod filecolumnview;
 
 use gettextrs::{gettext, LocaleCategory};
 use gtk::{gio, glib};

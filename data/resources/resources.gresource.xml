@@ -6,6 +6,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/folderbrowser.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/folderitem.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/filecolumnview.ui</file>
     <file compressed="true">style.css</file>
   </gresource>
 </gresources>

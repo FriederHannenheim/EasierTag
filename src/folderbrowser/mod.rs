@@ -1,8 +1,8 @@
 use gtk::{
-    gio, glib, glib::clone, glib::closure, prelude::*, subclass::prelude::*, glib::Object, CompositeTemplate,
-    ConstantExpression, DirectoryList, FileFilter, FilterChange, FilterListModel, ListItem,
-    ListView, PropertyExpression, SignalListItemFactory, SingleSelection, TreeListModel,
-    TreeListRow, Widget, SortListModel, CustomSorter,
+    gio, glib, glib::clone, glib::closure, glib::Object, prelude::*, subclass::prelude::*,
+    CompositeTemplate, ConstantExpression, CustomSorter, DirectoryList, FileFilter, FilterChange,
+    FilterListModel, ListItem, ListView, PropertyExpression, SignalListItemFactory,
+    SingleSelection, SortListModel, TreeListModel, TreeListRow, Widget,
 };
 
 use crate::folderbrowser::folderitem::FolderItem;
@@ -175,14 +175,16 @@ impl FolderBrowser {
                     String::from("")
                 }));
 
-            let treeexpander_expr = fileinfo_expr.chain_closure::<Option<TreeListRow>>(closure!(|_: Option<Object>, fileinfo_obj: Option<Object>| {
-                if let Some(fileinfo_obj) = fileinfo_obj {
-                    if let Ok(tree_list_row) = fileinfo_obj.downcast::<TreeListRow>() {
-                        return Some(tree_list_row);
+            let treeexpander_expr = fileinfo_expr.chain_closure::<Option<TreeListRow>>(closure!(
+                |_: Option<Object>, fileinfo_obj: Option<Object>| {
+                    if let Some(fileinfo_obj) = fileinfo_obj {
+                        if let Ok(tree_list_row) = fileinfo_obj.downcast::<TreeListRow>() {
+                            return Some(tree_list_row);
+                        }
                     }
+                    None
                 }
-                None
-            }));
+            ));
 
             // file_expr.bind(&folderitem, "current-file", Widget::NONE);
             basename_expr.bind(&folderitem.file_label(), "label", Widget::NONE);
@@ -216,24 +218,29 @@ impl FolderBrowser {
 
             first_display_name.cmp(second_display_name).into()
         });
-        let sort_list_model = SortListModel::new(Some(&filefilter_model), Some(&alphanumeric_sorter));
+        let sort_list_model =
+            SortListModel::new(Some(&filefilter_model), Some(&alphanumeric_sorter));
 
-        let treelist_model = TreeListModel::new(&sort_list_model, false, false,
+        let treelist_model = TreeListModel::new(
+            &sort_list_model,
+            false,
+            false,
             clone!(@weak filefilter, @weak alphanumeric_sorter => @default-return None, move |obj| {
-                let fileinfo = obj
-                    .clone()
-                    .downcast::<gio::FileInfo>()
-                    .unwrap()
-                    .attribute_object("standard::file")
-                    .unwrap();
-                if let Ok(file) = fileinfo.downcast::<gio::File>() {
-                    let secondary_dirlist = DirectoryList::new(Some("standard::*"), Some(&file));
-                    secondary_dirlist.set_monitored(true);
-                    let secondary_filefiltermodel = FilterListModel::new(Some(&secondary_dirlist), Some(&filefilter));
-                    return Some(SortListModel::new(Some(&secondary_filefiltermodel), Some(&alphanumeric_sorter)).into());
-                };
-                None
-        }));
+                    let fileinfo = obj
+                        .clone()
+                        .downcast::<gio::FileInfo>()
+                        .unwrap()
+                        .attribute_object("standard::file")
+                        .unwrap();
+                    if let Ok(file) = fileinfo.downcast::<gio::File>() {
+                        let secondary_dirlist = DirectoryList::new(Some("standard::*"), Some(&file));
+                        secondary_dirlist.set_monitored(true);
+                        let secondary_filefiltermodel = FilterListModel::new(Some(&secondary_dirlist), Some(&filefilter));
+                        return Some(SortListModel::new(Some(&secondary_filefiltermodel), Some(&alphanumeric_sorter)).into());
+                    };
+                    None
+            }),
+        );
 
         let primary_selection_model = SingleSelection::new(Some(&treelist_model));
 

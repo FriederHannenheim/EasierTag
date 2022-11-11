@@ -5,6 +5,7 @@ use gtk::{gio, glib};
 use crate::application::EasierTagApplication;
 use crate::config::{APP_ID, PROFILE};
 use crate::folderbrowser::FolderBrowser;
+use crate::filecolumnview::FileColumnView;
 
 mod imp {
     use super::*;
@@ -16,6 +17,8 @@ mod imp {
         pub headerbar: TemplateChild<gtk::HeaderBar>,
         #[template_child]
         pub folderbrowser: TemplateChild<FolderBrowser>,
+        #[template_child]
+        pub filecolumnview: TemplateChild<FileColumnView>,
         pub settings: gio::Settings,
     }
 
@@ -24,6 +27,7 @@ mod imp {
             Self {
                 headerbar: TemplateChild::default(),
                 folderbrowser: TemplateChild::default(),
+                filecolumnview: TemplateChild::default(),
                 settings: gio::Settings::new(APP_ID),
             }
         }

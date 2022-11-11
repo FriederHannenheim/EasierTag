@@ -74,4 +74,3 @@ impl Default for FolderItem {
         Self::new()
     }
 }
-
