@@ -1,9 +1,10 @@
 mod application;
 #[rustfmt::skip]
 mod config;
-mod folderbrowser;
-mod window;
 mod filecolumnview;
+mod folderbrowser;
+mod taggablefile;
+mod window;
 
 use gettextrs::{gettext, LocaleCategory};
 use gtk::{gio, glib};

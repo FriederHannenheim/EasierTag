@@ -4,8 +4,8 @@ use gtk::{gio, glib};
 
 use crate::application::EasierTagApplication;
 use crate::config::{APP_ID, PROFILE};
-use crate::folderbrowser::FolderBrowser;
 use crate::filecolumnview::FileColumnView;
+use crate::folderbrowser::FolderBrowser;
 
 mod imp {
     use super::*;
@@ -13,8 +13,6 @@ mod imp {
     #[derive(Debug, gtk::CompositeTemplate)]
     #[template(resource = "/net/fhannenheim/EasierTag/ui/window.ui")]
     pub struct EasierTagApplicationWindow {
-        #[template_child]
-        pub headerbar: TemplateChild<gtk::HeaderBar>,
         #[template_child]
         pub folderbrowser: TemplateChild<FolderBrowser>,
         #[template_child]
@@ -25,7 +23,6 @@ mod imp {
     impl Default for EasierTagApplicationWindow {
         fn default() -> Self {
             Self {
-                headerbar: TemplateChild::default(),
                 folderbrowser: TemplateChild::default(),
                 filecolumnview: TemplateChild::default(),
                 settings: gio::Settings::new(APP_ID),
@@ -121,5 +118,6 @@ impl EasierTagApplicationWindow {
 
     pub fn init(&self) {
         self.imp().folderbrowser.init();
+        self.imp().filecolumnview.init();
     }
 }

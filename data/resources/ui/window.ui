@@ -4,16 +4,13 @@
   <template class="ExampleApplicationWindow" parent="GtkApplicationWindow">
     <property name="can-focus">True</property>
     <child>
-      <object class="FolderBrowser" id="folderbrowser"></object>
-    </child>
-    <child>
-      <object class="FileColumnView" id="filecolumnview"></object>
-    </child>
-    <child type="titlebar">
-      <object class="GtkHeaderBar" id="headerbar">
-        <child type="end">
-          <object class="GtkMenuButton" id="appmenu_button">
-          </object>
+      <object class="GtkPaned">
+        <property name="position">300</property>
+        <child>
+          <object class="FolderBrowser" id="folderbrowser"></object>
+        </child>
+        <child>
+          <object class="FileColumnView" id="filecolumnview"></object>
         </child>
       </object>
     </child>

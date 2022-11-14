@@ -25,6 +25,8 @@
           <object class="GtkColumnView" id="file_column_view">
             <property name="show-column-separators">true</property>
             <property name="enable-rubberband">true</property>
+            <property name="reorderable">true</property>
+            <property name="halign">start</property>
             <child>
               <object class="GtkColumnViewColumn" id="filename_column">
                 <property name="title">Filename</property>

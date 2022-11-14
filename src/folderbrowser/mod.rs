@@ -98,26 +98,6 @@ impl FolderBrowser {
             let fileinfo_expr =
                 PropertyExpression::new(ListItem::static_type(), Some(&list_item_expr), "item");
 
-            let _file_expr = fileinfo_expr.chain_closure::<Option<gio::File>>(closure!(
-                |_: Option<glib::Object>, fileinfo_obj: Option<glib::Object>| {
-                    fileinfo_obj
-                        .map(|fileinfo_obj| {
-                            fileinfo_obj
-                                .downcast::<TreeListRow>()
-                                .unwrap()
-                                .item()
-                                .unwrap()
-                                .downcast::<gio::FileInfo>()
-                                .unwrap()
-                                .attribute_object("standard::file")
-                                .unwrap()
-                                .downcast::<gio::File>()
-                                .unwrap()
-                        })
-                        .to_value()
-                }
-            ));
-
             let icon_name_expr =
                 fileinfo_expr.chain_closure::<gio::ThemedIcon>(closure!(|_: Option<
                     glib::Object,
@@ -186,7 +166,6 @@ impl FolderBrowser {
                 }
             ));
 
-            // file_expr.bind(&folderitem, "current-file", Widget::NONE);
             basename_expr.bind(&folderitem.file_label(), "label", Widget::NONE);
             icon_name_expr.bind(&folderitem.file_image(), "gicon", Widget::NONE);
             treeexpander_expr.bind(&folderitem.tree_expander(), "list_row", Widget::NONE);
