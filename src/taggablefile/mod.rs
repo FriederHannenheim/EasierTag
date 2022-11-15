@@ -1,11 +1,11 @@
 use gtk::{
+    gdk::Texture,
     glib,
-    glib::{
-        Object, ParamSpec, ParamSpecInt, ParamSpecString, ParamSpecUInt, ParamSpecValueArray, Value,
-    },
+    glib::{Bytes, Object, ParamSpec, ParamSpecBoxed, ParamSpecObject, ParamSpecString, Value},
     prelude::*,
     subclass::prelude::*,
 };
+use log::warn;
 use once_cell::sync::Lazy;
 use std::cell::{Cell, RefCell};
 
@@ -21,15 +21,15 @@ mod imp {
         pub album: RefCell<Option<String>>,
         pub composer: RefCell<Option<String>>,
         pub genre: RefCell<Option<String>>,
+        pub duration: RefCell<Option<String>>,
+        pub year: RefCell<Option<String>>,
+        pub disc: RefCell<Option<String>>,
+        pub total_discs: RefCell<Option<String>>,
+        pub track: RefCell<Option<String>>,
+        pub total_tracks: RefCell<Option<String>>,
+
         pub artists: RefCell<Vec<String>>,
         pub album_artists: RefCell<Vec<String>>,
-
-        pub duration: Cell<Option<f64>>,
-        pub year: Cell<Option<i32>>,
-        pub disc: Cell<Option<u32>>,
-        pub total_discs: Cell<Option<u32>>,
-        pub track: Cell<Option<u32>>,
-        pub total_tracks: Cell<Option<u32>>,
 
         pub cover: RefCell<Option<Texture>>,
     }
@@ -49,14 +49,14 @@ mod imp {
                     ParamSpecString::builder("album").build(),
                     ParamSpecString::builder("composer").build(),
                     ParamSpecString::builder("genre").build(),
-                    ParamSpecValueArray::builder("artists").build(),
-                    ParamSpecValueArray::builder("album_artists").build(),
-                    ParamSpecFloat::builder("duration").build(),
-                    ParamSpecInt::builder("year").build(),
-                    ParamSpecUInt::builder("disc").build(),
-                    ParamSpecUInt::builder("total_discs").build(),
-                    ParamSpecUInt::builder("track").build(),
-                    ParamSpecUInt::builder("total_tracks").build(),
+                    ParamSpecString::builder("duration").build(),
+                    ParamSpecString::builder("year").build(),
+                    ParamSpecString::builder("disc").build(),
+                    ParamSpecString::builder("total-discs").build(),
+                    ParamSpecString::builder("track").build(),
+                    ParamSpecString::builder("total-tracks").build(),
+                    ParamSpecBoxed::builder::<Vec<String>>("artists").build(),
+                    ParamSpecBoxed::builder::<Vec<String>>("album-artists").build(),
                     ParamSpecObject::builder::<Texture>("cover").build(),
                 ]
             });
@@ -71,35 +71,19 @@ mod imp {
                     "album" => self.album.replace(Some(value)),
                     "composer" => self.composer.replace(Some(value)),
                     "genre" => self.genre.replace(Some(value)),
-                    "cover_mime_type" => self.cover_mime_type.replace(Some(value)),
+                    "duration" => self.duration.replace(Some(value)),
+                    "year" => self.year.replace(Some(value)),
+                    "disc" => self.disc.replace(Some(value)),
+                    "total-discs" => self.total_discs.replace(Some(value)),
+                    "track" => self.track.replace(Some(value)),
+                    "total-tracks" => self.total_tracks.replace(Some(value)),
                     _ => unimplemented!(),
-                }
+                };
             }
             if let Ok(value) = value.get::<Vec<String>>() {
                 match pspec.name() {
                     "artists" => self.artists.replace(value),
-                    "album_artists" => self.album_artists.replace(value),
-                    _ => unimplemented!(),
-                }
-            }
-            if let Ok(value) = value.get::<u32>() {
-                match pspec.name() {
-                    "disc" => self.disc.replace(Some(value)),
-                    "total_discs" => self.total_discs.replace(Some(value)),
-                    "track" => self.track.replace(Some(value)),
-                    "total_tracks" => self.total_tracks.replace(Some(value)),
-                    _ => unimplemented!(),
-                }
-            }
-            if let Ok(value) = value.get::<i32>() {
-                match pspec.name() {
-                    "year" => self.year.replace(Some(value)),
-                    _ => unimplemented!(),
-                };
-            }
-            if let Ok(value) = value.get::<f64>() {
-                match pspec.name() {
-                    "duration" => self.duration.replace(Some(value)),
+                    "album-artists" => self.album_artists.replace(value),
                     _ => unimplemented!(),
                 };
             }
@@ -107,7 +91,7 @@ mod imp {
                 match pspec.name() {
                     "cover" => self.cover.replace(Some(value)),
                     _ => unimplemented!(),
-                }
+                };
             }
         }
 
@@ -118,15 +102,15 @@ mod imp {
                 "album" => self.album.borrow().to_value(),
                 "composer" => self.composer.borrow().to_value(),
                 "genre" => self.genre.borrow().to_value(),
-                "artists" => self.artists.borrow().to_value(),
-                "album_artists" => self.album_artists.borrow().to_value(),
+                "duration" => self.duration.borrow().to_value(),
+                "year" => self.year.borrow().to_value(),
+                "disc" => self.disc.borrow().to_value(),
+                "total-discs" => self.total_discs.borrow().to_value(),
+                "track" => self.track.borrow().to_value(),
+                "total-tracks" => self.total_tracks.borrow().to_value(),
 
-                "duration" => self.duration.get().to_value(),
-                "year" => self.year.get().to_value(),
-                "disc" => self.disc.get().map().to_value(),
-                "total_discs" => self.total_discs.get().to_value(),
-                "track" => self.track.get().to_value(),
-                "total_tracks" => self.total_tracks.get().to_value(),
+                "artists" => self.artists.borrow().to_value(),
+                "album-artists" => self.album_artists.borrow().to_value(),
 
                 "cover" => self.cover.borrow().to_value(),
                 _ => unimplemented!(),
@@ -150,28 +134,57 @@ impl TaggableFile {
         album: &str,
         composer: &str,
         genre: &str,
-
-        artists: Vec<String>,
-        album_artists: Vec<String>,
-
+        duration: Option<f64>,
         year: Option<i32>,
         disc: Option<u16>,
         total_discs: Option<u16>,
         track: Option<u16>,
         total_tracks: Option<u16>,
-        genre: &str,
+
+        artists: Vec<String>,
+        album_artists: Vec<String>,
+
+        cover: Option<audiotags::Picture>,
     ) -> Self {
-        Object::builder()
+        let mut filetag_obj = Object::builder()
             .property("filename", filename)
             .property("title", title)
-            .property("artists", artists)
             .property("album", album)
-            .property("year", year)
-            .property("disc", disc.map(|inner| inner as u32))
-            .property("total_discs", total_discs.map(|inner| inner as u32))
-            .property("track", track.map(|inner| inner as u32))
-            .property("total_tracks", total_tracks.map(|inner| inner as u32))
+            .property("composer", composer)
             .property("genre", genre)
-            .build()
+            .property("artists", artists)
+            .property("album-artists", album_artists);
+
+        if let Some(value) = duration {
+            filetag_obj = filetag_obj.property("duration", value.to_string());
+        }
+        if let Some(value) = year {
+            filetag_obj = filetag_obj.property("year", value.to_string());
+        }
+        if let Some(value) = disc {
+            filetag_obj = filetag_obj.property("disc", value.to_string());
+        }
+        if let Some(value) = total_discs {
+            filetag_obj = filetag_obj.property("total-discs", value.to_string());
+        }
+        if let Some(value) = track {
+            filetag_obj = filetag_obj.property("track", value.to_string());
+        }
+        if let Some(value) = total_tracks {
+            filetag_obj = filetag_obj.property("total-tracks", value.to_string());
+        }
+
+        if let Some(cover) = cover {
+            if let Ok(texture) = Texture::from_bytes(&Bytes::from_owned(cover.data.to_vec())) {
+                filetag_obj = filetag_obj.property("cover", texture);
+            } else {
+                warn!(
+                    "{} has cover metadata but it is in an unsupported format.",
+                    filename
+                );
+            }
+        }
+
+        filetag_obj.build()
     }
 }
