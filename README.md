@@ -1,1 +1,2 @@
-https://gitlab.gnome.org/GNOME/nautilus/-/merge_requests/817
+- Create dirlist in src/folderbrowser/mod.rs
+- Connect activation changed to taggablefile->rebuild
