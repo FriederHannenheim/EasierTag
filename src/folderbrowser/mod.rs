@@ -2,11 +2,13 @@ use gtk::{
     gio, glib, glib::clone, glib::closure, glib::Object, prelude::*, subclass::prelude::*,
     CompositeTemplate, ConstantExpression, CustomSorter, DirectoryList, FileFilter, FilterChange,
     FilterListModel, ListItem, ListView, PropertyExpression, SignalListItemFactory,
-    SingleSelection, SortListModel, TreeListModel, TreeListRow, Widget,
+    SingleSelection, SortListModel, TreeListModel, TreeListRow, Widget, MultiSelection,
+    BitsetIter,
 };
 
 use crate::folderbrowser::folderitem::FolderItem;
-
+use crate::window::EasierTagApplicationWindow;
+use crate::taggablefile::taggablefilelist::TaggableFileListModel;
 mod folderitem;
 
 mod imp {
@@ -86,7 +88,7 @@ impl FolderBrowser {
         self.imp().primary_listview.clone()
     }
 
-    pub fn init(&self) {
+    pub fn init(&self, window: &EasierTagApplicationWindow) {
         let primary_list_factory = SignalListItemFactory::new();
 
         primary_list_factory.connect_setup(move |_, list_item| {
@@ -221,7 +223,7 @@ impl FolderBrowser {
             }),
         );
 
-        let primary_selection_model = SingleSelection::new(Some(&treelist_model));
+        let primary_selection_model = MultiSelection::new(Some(&treelist_model));
 
         self.imp()
             .primary_listview
@@ -231,28 +233,38 @@ impl FolderBrowser {
             .primary_listview
             .get()
             .set_model(Some(&primary_selection_model));
-        self.primary_listview()
-            .connect_activate(|primary_listview, position| {
-                let model = primary_listview
-                    .model()
-                    .expect("Listview has no SelectionModel")
-                    .downcast::<SingleSelection>()
-                    .expect("SelectionModel is not a SingleSelectionModel")
-                    .model()
-                    .expect("SelectionModel has no ListModel");
-                let treelist_model = model
-                    .downcast::<TreeListModel>()
-                    .expect("Model isn't a TreeListModel'");
-                if let Some(child_row) = treelist_model.child_row(position) {
-                    child_row.set_expanded(true);
-                }
-            });
 
         self.primary_dirlist().connect_items_changed(
             clone!(@weak filefilter => move |_primary_dirlist, _position, _removed, _added| {
                 filefilter.changed(FilterChange::Different);
             }),
         );
+        primary_selection_model.connect_selection_changed(clone!(@weak window => move |_model, _position, _n| {
+            let filelist = window.filecolumnview().column_view().model().unwrap().downcast::<MultiSelection>().unwrap().model().unwrap().downcast::<TaggableFileListModel>().unwrap();
+            if let Some(model) = _model.model() {
+                for index in BitsetIter::init_first(&_model.selection()) {
+                    let item = _model.item(index.1);
+                    if let Some(fileinfo_obj) = item {
+                        if let Some(file) = fileinfo_obj
+                            .downcast::<TreeListRow>()
+                            .unwrap()
+                            .item()
+                            .unwrap()
+                            .downcast::<gio::FileInfo>()
+                            .unwrap()
+                            .attribute_object("standard::file")
+                            {
+                                let file = file
+                                    .downcast::<gio::File>()
+                                    .expect("failed to downcast::<gio::File>() from file GObject");
+                                filelist.add_folder(&file);
+                            }
+                    }
+                }
+                filelist.rebuild_taglist();
+            }
+        }));
+
         self.primary_dirlist()
             .set_file(Some(&gio::File::for_path("/home/fried/")));
         println!("{:?}", self.imp().primary_dirlist.is_loading());

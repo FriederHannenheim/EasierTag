@@ -1,4 +1,5 @@
 use crate::taggablefile::TaggableFile;
+use crate::taggablefile::taggablefilelist::TaggableFileListModel;
 use gtk::{
     gio, glib, glib::closure, prelude::*, subclass::prelude::*, ColumnView, ColumnViewColumn,
     CompositeTemplate, ConstantExpression, Label, ListItem, MultiSelection, PropertyExpression,
@@ -129,42 +130,7 @@ impl FileColumnView {
             });
             column.set_factory(Some(&column_list_factory));
         }
-        let model = gio::ListStore::new(TaggableFile::static_type());
-
-        model.extend_from_slice(&vec![
-            TaggableFile::new(
-                "Lelel.mp3",
-                "ses 2",
-                "Karzermusik",
-                "",
-                "",
-                Some(3.5),
-                Some(1994),
-                Some(3),
-                Some(4),
-                Some(1),
-                Some(1),
-                vec![String::from("Katze"), String::from("Graue Katze")],
-                vec![String::from("Katze"), String::from("Graue Katze")],
-                None,
-            ),
-            TaggableFile::new(
-                "Lelel2.mp3",
-                "ses 1",
-                "Karzermusik",
-                "",
-                "",
-                Some(3.5),
-                Some(1994),
-                Some(2),
-                Some(4),
-                Some(1),
-                Some(1),
-                vec![String::from("Katze"), String::from("Graue Katze")],
-                vec![String::from("Katze"), String::from("Graue Katze")],
-                None,
-            ),
-        ]);
+        let model = TaggableFileListModel::new();
 
         let multi_selection = MultiSelection::new(Some(&model));
         self.column_view().set_model(Some(&multi_selection));

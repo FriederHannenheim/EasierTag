@@ -11,6 +11,7 @@
     "finish-args": [
         "--socket=fallback-x11",
         "--socket=wayland",
+        "--socket=session-bus",
         "--device=dri",
         "--env=RUST_LOG=easier_tag=debug",
         "--env=G_MESSAGES_DEBUG=none",
@@ -50,3 +51,4 @@
         }
     ]
 }
+

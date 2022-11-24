@@ -116,8 +116,12 @@ impl EasierTagApplicationWindow {
         }
     }
 
+    pub fn filecolumnview(&self) -> FileColumnView {
+        self.imp().filecolumnview.clone()
+    }
+
     pub fn init(&self) {
-        self.imp().folderbrowser.init();
+        self.imp().folderbrowser.init(self);
         self.imp().filecolumnview.init();
     }
 }

@@ -9,7 +9,7 @@ use log::warn;
 use once_cell::sync::Lazy;
 use std::cell::{Cell, RefCell};
 
-mod taggablefilelist;
+pub mod taggablefilelist;
 
 mod imp {
     use super::*;

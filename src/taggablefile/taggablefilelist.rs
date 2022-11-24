@@ -1,21 +1,23 @@
 use crate::taggablefile::TaggableFile;
 use audiotags::{Tag, TagType};
-use gtk::{gio, glib, prelude::*, subclass::prelude::*, DirectoryList};
+use gtk::{gio, gio::File, glib, prelude::*, subclass::prelude::*, DirectoryList, builders::DirectoryListBuilder};
+use core::cell::RefCell;
 
 mod imp {
     use super::*;
 
     #[derive(Debug)]
     pub struct TaggableFileListModel {
-        pub directory_list: DirectoryList,
+        pub directory_lists: RefCell<Vec<DirectoryList>>,
+        pub taggable_files: RefCell<Vec<TaggableFile>>,
     }
 
     impl Default for TaggableFileListModel {
         fn default() -> Self {
-            let directory_list =
-                DirectoryList::new(Some("standard::*"), None as Option<&gio::File>);
-            directory_list.set_monitored(true);
-            Self { directory_list }
+            Self {
+                directory_lists: RefCell::new(vec![]),
+                taggable_files: RefCell::new(vec![]),
+            }
         }
     }
 
@@ -33,10 +35,32 @@ mod imp {
             TaggableFile::static_type()
         }
         fn n_items(&self) -> u32 {
-            self.directory_list.n_items()
+            self.taggable_files.borrow().len() as u32
         }
         fn item(&self, position: u32) -> Option<glib::Object> {
-            if let Some(file) = self.directory_list.item(position) {
+            if let Some(filetag) = self.taggable_files.borrow().get(position as usize) {
+                return Some(filetag.clone().into());
+            }
+            None
+        }
+    }
+
+    impl TaggableFileListModel {
+        pub fn rebuild_taglist(&self) {
+            for list in self.directory_lists.borrow().iter() {
+                for i in 0..list.n_items() {
+                    if let Some(item) = list.item(i) {
+                        if let Some(filetag) = filetag_from_directorylist(&list, i) {
+                            self.taggable_files.borrow_mut().push(filetag);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fn filetag_from_directorylist(directory_list: &DirectoryList, position: u32) -> Option<TaggableFile> {
+            if let Some(file) = directory_list.item(position) {
                 if let Ok(fileinfo) = file.downcast::<gio::FileInfo>() {
                     let path = fileinfo.name();
                     if let Ok(tag) = Tag::new().read_from_path(&path) {
@@ -64,14 +88,12 @@ mod imp {
                                     .map(|artist| artist.to_owned())
                                     .collect(),
                                 tag.album_cover(),
-                            )
-                            .into(),
+                            ),
                         );
                     }
                 }
             }
             None
-        }
     }
 }
 
@@ -83,6 +105,17 @@ glib::wrapper! {
 impl TaggableFileListModel {
     pub fn new() -> Self {
         glib::Object::new(&[])
+    }
+    pub fn add_folder(&self, file: &impl IsA<File>) {
+        let dirlist = DirectoryListBuilder::new().file(file).monitored(true).build();
+        //dirlist.connect_items_changed(|_,_,_,_| self.imp().rebuild_taglist());
+        self.imp().directory_lists.borrow_mut().push(dirlist);
+    }
+    pub fn rebuild_taglist(&self) {
+        self.imp().rebuild_taglist();
+    }
+    pub fn clear_folders(&self) {
+        self.imp().directory_lists.borrow_mut().clear();
     }
 }
 
