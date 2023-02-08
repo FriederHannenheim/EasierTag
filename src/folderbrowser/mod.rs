@@ -1,14 +1,13 @@
 use gtk::{
     gio, glib, glib::clone, glib::closure, glib::Object, prelude::*, subclass::prelude::*,
-    CompositeTemplate, ConstantExpression, CustomSorter, DirectoryList, FileFilter, FilterChange,
-    FilterListModel, ListItem, ListView, PropertyExpression, SignalListItemFactory,
-    SingleSelection, SortListModel, TreeListModel, TreeListRow, Widget, MultiSelection,
-    BitsetIter,
+    BitsetIter, CompositeTemplate, ConstantExpression, CustomSorter, DirectoryList, FileFilter,
+    FilterChange, FilterListModel, ListItem, ListView, MultiSelection, PropertyExpression,
+    SignalListItemFactory, SingleSelection, SortListModel, TreeListModel, TreeListRow, Widget,
 };
 
 use crate::folderbrowser::folderitem::FolderItem;
-use crate::window::EasierTagApplicationWindow;
 use crate::taggablefile::taggablefilelist::TaggableFileListModel;
+use crate::window::EasierTagApplicationWindow;
 mod folderitem;
 
 mod imp {

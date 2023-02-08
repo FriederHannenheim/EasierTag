@@ -1,7 +1,10 @@
 use crate::taggablefile::TaggableFile;
 use audiotags::{Tag, TagType};
-use gtk::{gio, gio::File, glib, prelude::*, subclass::prelude::*, DirectoryList, builders::DirectoryListBuilder};
 use core::cell::RefCell;
+use gtk::{
+    builders::DirectoryListBuilder, gio, gio::File, glib, prelude::*, subclass::prelude::*,
+    DirectoryList,
+};
 
 mod imp {
     use super::*;
@@ -59,41 +62,42 @@ mod imp {
         }
     }
 
-    fn filetag_from_directorylist(directory_list: &DirectoryList, position: u32) -> Option<TaggableFile> {
-            if let Some(file) = directory_list.item(position) {
-                if let Ok(fileinfo) = file.downcast::<gio::FileInfo>() {
-                    let path = fileinfo.name();
-                    if let Ok(tag) = Tag::new().read_from_path(&path) {
-                        return Some(
-                            TaggableFile::new(
-                                path.to_str().expect("filepath is not valid utf-8"),
-                                tag.title().unwrap_or(""),
-                                tag.album_title().unwrap_or(""),
-                                tag.composer().unwrap_or(""),
-                                tag.genre().unwrap_or(""),
-                                tag.duration(),
-                                tag.year(),
-                                tag.disc_number(),
-                                tag.total_discs(),
-                                tag.track_number(),
-                                tag.total_tracks(),
-                                tag.artists()
-                                    .unwrap_or(vec![])
-                                    .into_iter()
-                                    .map(|artist| artist.to_owned())
-                                    .collect(),
-                                tag.album_artists()
-                                    .unwrap_or(vec![])
-                                    .into_iter()
-                                    .map(|artist| artist.to_owned())
-                                    .collect(),
-                                tag.album_cover(),
-                            ),
-                        );
-                    }
+    fn filetag_from_directorylist(
+        directory_list: &DirectoryList,
+        position: u32,
+    ) -> Option<TaggableFile> {
+        if let Some(file) = directory_list.item(position) {
+            if let Ok(fileinfo) = file.downcast::<gio::FileInfo>() {
+                let path = fileinfo.name();
+                if let Ok(tag) = Tag::new().read_from_path(&path) {
+                    return Some(TaggableFile::new(
+                        path.to_str().expect("filepath is not valid utf-8"),
+                        tag.title().unwrap_or(""),
+                        tag.album_title().unwrap_or(""),
+                        tag.composer().unwrap_or(""),
+                        tag.genre().unwrap_or(""),
+                        tag.duration(),
+                        tag.year(),
+                        tag.disc_number(),
+                        tag.total_discs(),
+                        tag.track_number(),
+                        tag.total_tracks(),
+                        tag.artists()
+                            .unwrap_or(vec![])
+                            .into_iter()
+                            .map(|artist| artist.to_owned())
+                            .collect(),
+                        tag.album_artists()
+                            .unwrap_or(vec![])
+                            .into_iter()
+                            .map(|artist| artist.to_owned())
+                            .collect(),
+                        tag.album_cover(),
+                    ));
                 }
             }
-            None
+        }
+        None
     }
 }
 
@@ -107,7 +111,10 @@ impl TaggableFileListModel {
         glib::Object::new(&[])
     }
     pub fn add_folder(&self, file: &impl IsA<File>) {
-        let dirlist = DirectoryListBuilder::new().file(file).monitored(true).build();
+        let dirlist = DirectoryListBuilder::new()
+            .file(file)
+            .monitored(true)
+            .build();
         //dirlist.connect_items_changed(|_,_,_,_| self.imp().rebuild_taglist());
         self.imp().directory_lists.borrow_mut().push(dirlist);
     }

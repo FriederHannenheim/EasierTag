@@ -1,5 +1,5 @@
-use crate::taggablefile::TaggableFile;
 use crate::taggablefile::taggablefilelist::TaggableFileListModel;
+use crate::taggablefile::TaggableFile;
 use gtk::{
     gio, glib, glib::closure, prelude::*, subclass::prelude::*, ColumnView, ColumnViewColumn,
     CompositeTemplate, ConstantExpression, Label, ListItem, MultiSelection, PropertyExpression,
