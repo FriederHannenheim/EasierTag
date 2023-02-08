@@ -240,6 +240,7 @@ impl FolderBrowser {
         );
         primary_selection_model.connect_selection_changed(clone!(@weak window => move |_model, _position, _n| {
             let filelist = window.filecolumnview().column_view().model().unwrap().downcast::<MultiSelection>().unwrap().model().unwrap().downcast::<TaggableFileListModel>().unwrap();
+            filelist.clear_folders();
             if let Some(model) = _model.model() {
                 for index in BitsetIter::init_first(&_model.selection()) {
                     let item = _model.item(index.1);
@@ -256,6 +257,7 @@ impl FolderBrowser {
                                 let file = file
                                     .downcast::<gio::File>()
                                     .expect("failed to downcast::<gio::File>() from file GObject");
+                                println!("adding {}", file.basename().unwrap().display());
                                 filelist.add_folder(&file);
                             }
                     }
